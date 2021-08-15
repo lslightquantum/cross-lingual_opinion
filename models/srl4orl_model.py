@@ -18,7 +18,6 @@ class SRL4ORL(nn.Module):
         self.token_embedding_dim = self.bert.config.hidden_size
         self.ctx_embedding_dim = self.token_embedding_dim
         self.p_embedding = nn.Embedding(2, self.ctx_embedding_dim)
-        self.ds_embedding = nn.Embedding(2, self.ctx_embedding_dim)
         self.rnn = nn.LSTM(self.token_embedding_dim+self.ctx_embedding_dim, hidden_dim // 2, batch_first=True, 
                            num_layers=self.rnn_layers, bidirectional=True, dropout=0.0)
         self.srl_hidden2tag = nn.Linear(hidden_dim, self.srl_tagset_size)
@@ -55,6 +54,7 @@ class SRL4ORL(nn.Module):
         packed_input = nn.utils.rnn.pack_padded_sequence(nn_input, seq_lens.cpu(), batch_first=True, enforce_sorted=False)
         packed_rnn_out, _ = self.rnn(packed_input)
         rnn_out, _ = torch.nn.utils.rnn.pad_packed_sequence(packed_rnn_out, batch_first=True)
+        rnn_out = self.dropout(rnn_out)
 
         return rnn_out
 
